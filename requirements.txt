@@ -16,12 +16,7 @@ xgboost
 
 # Embeddings + ML
 gensim==4.3.1
-torch
-skorch
 
 # Model hubs
 huggingface_hub
 
-# Optional (used by light models)
-lightgbm
-catboost
