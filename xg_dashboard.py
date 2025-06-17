@@ -540,7 +540,7 @@ with st.expander(f"📋 Check Evaluation Metrics for {selected_model_name}"):
 
     except FileNotFoundError:
         st.warning("Evaluation data files not found. Make sure the dataset files are uploaded in the Hugging Face repo.")
-        
+
     st.markdown("""
 ### Choosing the Best Model: Focus on Class 1 (Goals)
 
@@ -591,10 +591,11 @@ if team_selected != "All":
 # -------------------------------------
 
 st.info("""### Are you done choosing your model? 
-Great, now you can dowloand data Sumarries based on each player or based on each team according to the model of your preference! Just click the buttons
-            """)
+Great, now you can download data summaries based on each player or team according to the model of your preference! Just click the buttons.
+""")
 
 def create_player_summary(df):
+    # Ensure these columns exist in df: player, team, xG, y_true
     player_summary = (
         df.groupby(["player", "team"])
         .agg(
@@ -623,6 +624,7 @@ def create_player_summary(df):
 
 
 def create_team_summary(df):
+    # Ensure these columns exist in df: team, xG, y_true
     team_summary = (
         df.groupby("team")
         .agg(
@@ -651,30 +653,25 @@ def create_team_summary(df):
 
 st.markdown("### 📥 Download Summaries")
 
-# Create empty placeholders for download buttons
-player_dl_placeholder = st.empty()
-team_dl_placeholder = st.empty()
-
-if player_dl_placeholder.button("Prepare and Download Player Summary CSV"):
+if st.button("Prepare and Download Player Summary CSV"):
     player_summary = create_player_summary(X_full)
     csv_player = player_summary.to_csv(index=False).encode("utf-8")
-    player_dl_placeholder.download_button(
+    st.download_button(
         label="📥 Click here to download Player xG Summary",
         data=csv_player,
         file_name=f"player_xg_summary_{selected_model_name}.csv",
         mime="text/csv"
     )
 
-if team_dl_placeholder.button("Prepare and Download Team Summary CSV"):
+if st.button("Prepare and Download Team Summary CSV"):
     team_summary = create_team_summary(X_full)
     csv_team = team_summary.to_csv(index=False).encode("utf-8")
-    team_dl_placeholder.download_button(
+    st.download_button(
         label="📥 Click here to download Team xG Summary",
         data=csv_team,
         file_name=f"team_xg_summary_{selected_model_name}.csv",
         mime="text/csv"
     )
-
 # -------------------------------------
 
 st.info(f"### Check your stats! The player selected is {player_selected}")
