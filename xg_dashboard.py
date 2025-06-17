@@ -23,7 +23,7 @@ from sklearn.compose import ColumnTransformer
 from sklearn.preprocessing import OneHotEncoder, FunctionTransformer
 from sklearn.pipeline import Pipeline
 from imblearn.pipeline import Pipeline as ImbPipeline
-import gensim
+#import gensim
 from huggingface_hub import hf_hub_download
 import os
 st.set_page_config(layout="wide")
@@ -143,27 +143,21 @@ engineered = [ "interaction_dist_angle",'effective_angle',"adjusted_shot_power",
               "distance_squared","inverse_distance","time_seconds","time_minutes","time_remaining_half"]
 binary += ['match_pressure', 'time_half']
 
-class FootballWord2VecEmbedder(BaseEstimator, TransformerMixin):
-    def __init__(self, player_model, team_model):
-        self.player_model = player_model
-        self.team_model = team_model
-        self.dim_player = player_model.vector_size
-        self.dim_team = team_model.vector_size
+class DummyFootballEmbedder(BaseEstimator, TransformerMixin):
+    def __init__(self, dim_player=4, dim_team=3):
+        self.dim_player = dim_player
+        self.dim_team = dim_team
 
     def fit(self, X, y=None):
         return self
 
     def transform(self, X):
         X = X.copy()
-        player_embs = X['player'].astype(str).apply(
-            lambda pid: self.player_model.wv[pid] if pid in self.player_model.wv else np.zeros(self.dim_player)
-        )
-        team_embs = X['team'].astype(str).apply(
-            lambda tid: self.team_model.wv[tid] if tid in self.team_model.wv else np.zeros(self.dim_team)
-        )
-        player_embs = np.vstack(player_embs.values)
-        team_embs = np.vstack(team_embs.values)
+        n = len(X)
+        player_embs = np.zeros((n, self.dim_player))
+        team_embs = np.zeros((n, self.dim_team))
         return np.hstack([player_embs, team_embs])
+
 
 def football_feature_engineering_func(X):
     X = X.copy()
@@ -185,7 +179,7 @@ def build_football_preprocessor(player2vec, team2vec):
         ("numerical", "passthrough", numerical),
         ("engineered", "passthrough", engineered),
         ("binary", "passthrough", binary),
-        ("w2vec", FootballWord2VecEmbedder(player2vec, team2vec), embedding_cols),
+        ("w2vec", DummyFootballEmbedder(dim_player=4, dim_team=3), embedding_cols),
     ])
 
     preprocessor = Pipeline([
@@ -194,6 +188,7 @@ def build_football_preprocessor(player2vec, team2vec):
     ])
 
     return preprocessor
+
 
 # --- Streamlit UI ---
 
@@ -330,8 +325,12 @@ We extract the second value from each pair — `P(goal)` — to get the final xG
                                  
 """)
 
-player2vec = gensim.models.Word2Vec(vector_size=4, min_count=1)  # dummy
-team2vec = gensim.models.Word2Vec(vector_size=3, min_count=1)    # dummy
+
+#player2vec = gensim.models.Word2Vec(vector_size=4, min_count=1)  # dummy
+#team2vec = gensim.models.Word2Vec(vector_size=3, min_count=1)    # dummy
+
+player2vec = None  # Not needed anymore
+team2vec = None
 
 # Build preprocessing pipeline
 preprocessor_dummy = build_football_preprocessor(player2vec, team2vec)
@@ -350,6 +349,29 @@ with st.expander("📜 Check our Full Pipeline Diagram with a Toy-Example"):
     except Exception as e:
         st.warning("Could not render full pipeline diagram. Falling back to text.")
         st.text(str(full_pipeline))
+
+
+
+#player2vec = gensim.models.Word2Vec(vector_size=4, min_count=1)  # dummy
+#team2vec = gensim.models.Word2Vec(vector_size=3, min_count=1)    # dummy
+
+# Build preprocessing pipeline
+#preprocessor_dummy = build_football_preprocessor(player2vec, team2vec)
+
+# Combine preprocessor and model into one pipeline
+#full_pipeline = Pipeline([
+#    ('preprocessor', preprocessor_dummy),
+#    ('classifier', model),
+#])
+
+#with st.expander("📜 Check our Full Pipeline Diagram with a Toy-Example"):
+#    set_config(display='diagram')
+#    try:
+#        pipeline_html = full_pipeline._repr_html_()
+#        st_html(pipeline_html, height=500, scrolling=True)
+#    except Exception as e:
+#        st.warning("Could not render full pipeline diagram. Falling back to text.")
+#        st.text(str(full_pipeline))
 
 # -------------------------------------
 # INTRODUCING THE MODELS FOR USERS
@@ -899,3 +921,4 @@ st.pyplot(fig)
 
 
 # streamlit run "c:/Users/arthu/OneDrive/Área de Trabalho/statsbomb_arthur/xg_dashboard.py"
+#cd "C:/Users/arthu/OneDrive/Área de Trabalho/xg-dashboard"
