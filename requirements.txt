@@ -1,0 +1,14 @@
+streamlit
+streamlit-plotly-events
+pandas
+plotly
+mplsoccer
+matplotlib
+seaborn
+numpy
+joblib
+scikit-learn
+imbalanced-learn
+xgboost
+gensim
+huggingface_hub
