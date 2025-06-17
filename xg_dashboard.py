@@ -398,8 +398,18 @@ def plot_class_count(y_before, y_after):
 
 with st.expander(f"📊 Check how Class Distribution changes Before/After {selected_model_name} Technique"):
     try:
-        y_before = pd.read_csv(f"artifacts/y_before_{selected_model_name}.csv").squeeze()
-        y_after = pd.read_csv(f"artifacts/y_after_{selected_model_name}.csv").squeeze()
+        y_before_path = hf_hub_download(
+            repo_id="arthurmfs07/xg-dashboard-artifacts",
+            filename=f"y_before_{selected_model_name}.csv",
+            repo_type="dataset"
+        )
+        y_after_path = hf_hub_download(
+            repo_id="arthurmfs07/xg-dashboard-artifacts",
+            filename=f"y_after_{selected_model_name}.csv",
+            repo_type="dataset"
+        )
+        y_before = pd.read_csv(y_before_path).squeeze()
+        y_after = pd.read_csv(y_after_path).squeeze()
         plot_class_count(y_before, y_after)
     except FileNotFoundError:
         st.warning(f"Class distribution data not found for model: {selected_model_name}")
@@ -433,90 +443,104 @@ def evaluate_model(model, X_test, y_test):
 st.markdown("### 📈 Model Evaluation - Let's choose a Model")
 
 with st.expander(f"📋 Check Evaluation Metrics for {selected_model_name}"):
-    # Load y_true and transformed X for prediction
-    y_true = pd.read_csv("artifacts/y_full_original.csv").squeeze()
-    X_clean = pd.read_csv("artifacts/X_full_original.csv")
-    X_transformed = preprocessor.transform(X_clean)
+    try:
+        y_true_path = hf_hub_download(
+            repo_id="arthurmfs07/xg-dashboard-artifacts",
+            filename="y_full_original.csv",
+            repo_type="dataset"
+        )
+        X_clean_path = hf_hub_download(
+            repo_id="arthurmfs07/xg-dashboard-artifacts",
+            filename="X_full_original.csv",
+            repo_type="dataset"
+        )
 
-    # Evaluate
-    metrics, cm, report_df = evaluate_model(model, X_transformed, y_true)
+        y_true = pd.read_csv(y_true_path).squeeze()
+        X_clean = pd.read_csv(X_clean_path)
+        X_transformed = preprocessor.transform(X_clean)
 
-    st.markdown("""
-    When building predictive models, we often face a core dilemma: how to make the model generalize well to new, unseen data.
+        # Evaluate
+        metrics, cm, report_df = evaluate_model(model, X_transformed, y_true)
 
-    This is where the **Bias-Variance Tradeoff** comes in:
+        st.markdown("""
+        When building predictive models, we often face a core dilemma: how to make the model generalize well to new, unseen data.
 
-    - **Bias** refers to errors due to overly simplistic assumptions in the model. A model with high bias pays too little attention to the training data — it underfits and misses important patterns.
-    - **Variance** refers to errors due to excessive sensitivity to small fluctuations in the training set. A high-variance model memorizes the data too closely — it overfits and fails to generalize.
+        This is where the **Bias-Variance Tradeoff** comes in:
 
-    The **ideal model** finds a balance between the two: it captures the true signal in the data (low bias) while being robust to noise (low variance).
+        - **Bias** refers to errors due to overly simplistic assumptions in the model. A model with high bias pays too little attention to the training data — it underfits and misses important patterns.
+        - **Variance** refers to errors due to excessive sensitivity to small fluctuations in the training set. A high-variance model memorizes the data too closely — it overfits and fails to generalize.
 
-    Choosing the right **model complexity** and applying **resampling, regularization, or ensembling** strategies (like we do with stacking) help us manage this tradeoff.
+        The **ideal model** finds a balance between the two: it captures the true signal in the data (low bias) while being robust to noise (low variance).
 
-    Below is a visual that summarizes this balance.
-    """)
+        Choosing the right **model complexity** and applying **resampling, regularization, or ensembling** strategies (like we do with stacking) help us manage this tradeoff.
 
-    st.image(
-    r"pics\bias_variance.png",
-    caption="Bias-Variance Tradeoff: Understanding model complexity and generalization.",
-    use_container_width=False)
+        Below is a visual that summarizes this balance.
+        """)
 
-    st.markdown("""Once the model is trained, we need to **evaluate its performance** on unseen data. Each section below helps us understand different aspects of how well the model is doing:""")
-    
-    st.subheader("Overall Metrics")
+        st.image(
+            r"pics\bias_variance.png",
+            caption="Bias-Variance Tradeoff: Understanding model complexity and generalization.",
+            use_container_width=False
+        )
 
-    st.markdown("""
-- **Geometric Mean**: Useful for imbalanced datasets — it balances performance on both the positive and negative classes.
-- **Accuracy**: The proportion of all predictions the model got right.
-- **AUC (Area Under the ROC Curve)**: Measures how well the model ranks positive vs. negative examples regardless of threshold — the higher, the better.
-                """)
+        st.markdown("""Once the model is trained, we need to **evaluate its performance** on unseen data. Each section below helps us understand different aspects of how well the model is doing:""")
 
+        st.subheader("Overall Metrics")
 
-    st.write(pd.DataFrame(metrics, index=["Value"]).T)
+        st.markdown("""
+        - **Geometric Mean**: Useful for imbalanced datasets — it balances performance on both the positive and negative classes.
+        - **Accuracy**: The proportion of all predictions the model got right.
+        - **AUC (Area Under the ROC Curve)**: Measures how well the model ranks positive vs. negative examples regardless of threshold — the higher, the better.
+        """)
 
-    fpr, tpr, thresholds = roc_curve(y_true, model.predict_proba(X_transformed)[:, 1])
-    # Plot ROC curve
-    fig, ax = plt.subplots(figsize=(5, 4))
-    ax.plot(fpr, tpr, label=f"AUC = {metrics['AUC']:.4f}")
-    ax.plot([0, 1], [0, 1], 'k--', label="Random Guessing")
-    ax.set_xlabel("False Positive Rate")
-    ax.set_ylabel("True Positive Rate")
-    ax.set_title("ROC Curve")
-    ax.legend(loc="lower right")
+        st.write(pd.DataFrame(metrics, index=["Value"]).T)
 
-    st.subheader("ROC Curve")
+        fpr, tpr, thresholds = roc_curve(y_true, model.predict_proba(X_transformed)[:, 1])
+        # Plot ROC curve
+        fig, ax = plt.subplots(figsize=(5, 4))
+        ax.plot(fpr, tpr, label=f"AUC = {metrics['AUC']:.4f}")
+        ax.plot([0, 1], [0, 1], 'k--', label="Random Guessing")
+        ax.set_xlabel("False Positive Rate")
+        ax.set_ylabel("True Positive Rate")
+        ax.set_title("ROC Curve")
+        ax.legend(loc="lower right")
 
-    st.markdown("""
-- This plot shows how the model balances **True Positive Rate (Sensitivity)** against **False Positive Rate** at different classification thresholds.
-- A curve closer to the top-left indicates better performance.
-- The dashed diagonal line represents **random guessing** — so we want our curve well above it.
-                """)
+        st.subheader("ROC Curve")
 
-    st.pyplot(fig)
+        st.markdown("""
+        - This plot shows how the model balances **True Positive Rate (Sensitivity)** against **False Positive Rate** at different classification thresholds.
+        - A curve closer to the top-left indicates better performance.
+        - The dashed diagonal line represents **random guessing** — so we want our curve well above it.
+        """)
 
-    st.subheader("Classification Report")
+        st.pyplot(fig)
 
-    st.markdown("""
-  - **Precision**: Out of all predicted goals, how many were actually goals?
-  - **Recall**: Out of all actual goals, how many did the model catch?
-  - **F1-score**: Harmonic mean of precision and recall — balances the two.
-                """)
+        st.subheader("Classification Report")
 
-    report_df_no_accuracy = report_df.drop(index=["accuracy"], errors="ignore")
-    st.dataframe(report_df_no_accuracy.style.format("{:.4f}").background_gradient(cmap='Blues', axis=1))
+        st.markdown("""
+        - **Precision**: Out of all predicted goals, how many were actually goals?
+        - **Recall**: Out of all actual goals, how many did the model catch?
+        - **F1-score**: Harmonic mean of precision and recall — balances the two.
+        """)
 
-    st.subheader("Confusion Matrix")
+        report_df_no_accuracy = report_df.drop(index=["accuracy"], errors="ignore")
+        st.dataframe(report_df_no_accuracy.style.format("{:.4f}").background_gradient(cmap='Blues', axis=1))
 
-    st.markdown("""
-- **True Positives (bottom-right)**: Correctly predicted goals.
-- **False Positives (top-right)**: Incorrectly predicted goals.
-- **False Negatives (bottom-left)**: Missed actual goals.
-- **True Negatives (top-left)**: Correctly predicted non-goals.
-                """)
+        st.subheader("Confusion Matrix")
 
-    cm_df = pd.DataFrame(cm, columns=["Pred: 0", "Pred: 1"], index=["True: 0", "True: 1"])
-    st.dataframe(cm_df.style.background_gradient(cmap='Oranges'))
+        st.markdown("""
+        - **True Positives (bottom-right)**: Correctly predicted goals.
+        - **False Positives (top-right)**: Incorrectly predicted goals.
+        - **False Negatives (bottom-left)**: Missed actual goals.
+        - **True Negatives (top-left)**: Correctly predicted non-goals.
+        """)
 
+        cm_df = pd.DataFrame(cm, columns=["Pred: 0", "Pred: 1"], index=["True: 0", "True: 1"])
+        st.dataframe(cm_df.style.background_gradient(cmap='Oranges'))
+
+    except FileNotFoundError:
+        st.warning("Evaluation data files not found. Make sure the dataset files are uploaded in the Hugging Face repo.")
+        
     st.markdown("""
 ### Choosing the Best Model: Focus on Class 1 (Goals)
 
