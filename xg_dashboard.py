@@ -29,22 +29,6 @@ import os
 st.set_page_config(layout="wide")
 
 # -------------- DATA & MODEL PLACEHOLDERS --------------
-# replace with actual data & model
-# should already be preloaded from notebook/serialized
-
-# Define available models
-#available_models = [
-#    "ADASYN", "BSMOTE", "RENN", "ROS",
-#    "RUS", "SMOTE", "SMOTEENN", "SMOTETomek"
-#]
-
-# Sidebar model selector
-#selected_model_name = st.sidebar.selectbox("Select Model", available_models)
-
-# Load corresponding model and preprocessor
-#preprocessor = joblib.load(f"artifacts/preprocessor_{selected_model_name}.joblib")
-#model = joblib.load(f"artifacts/stacked_clf_{selected_model_name}.joblib")
-
 
 # Available models
 available_models = [
@@ -350,28 +334,6 @@ with st.expander("📜 Check our Full Pipeline Diagram with a Toy-Example"):
         st.warning("Could not render full pipeline diagram. Falling back to text.")
         st.text(str(full_pipeline))
 
-
-
-#player2vec = gensim.models.Word2Vec(vector_size=4, min_count=1)  # dummy
-#team2vec = gensim.models.Word2Vec(vector_size=3, min_count=1)    # dummy
-
-# Build preprocessing pipeline
-#preprocessor_dummy = build_football_preprocessor(player2vec, team2vec)
-
-# Combine preprocessor and model into one pipeline
-#full_pipeline = Pipeline([
-#    ('preprocessor', preprocessor_dummy),
-#    ('classifier', model),
-#])
-
-#with st.expander("📜 Check our Full Pipeline Diagram with a Toy-Example"):
-#    set_config(display='diagram')
-#    try:
-#        pipeline_html = full_pipeline._repr_html_()
-#        st_html(pipeline_html, height=500, scrolling=True)
-#    except Exception as e:
-#        st.warning("Could not render full pipeline diagram. Falling back to text.")
-#        st.text(str(full_pipeline))
 
 # -------------------------------------
 # INTRODUCING THE MODELS FOR USERS
