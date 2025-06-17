@@ -76,9 +76,21 @@ def load_artifact(filename):
 preprocessor = load_artifact(f"preprocessor_{selected_model_name}.joblib")
 model = load_artifact(f"stacked_clf_{selected_model_name}.joblib")
 
+X_csv_path = hf_hub_download(
+    repo_id="arthurmfs07/xg-dashboard-artifacts",
+    filename="X_full_original.csv",
+    repo_type="dataset"
+)
+
+y_csv_path = hf_hub_download(
+    repo_id="arthurmfs07/xg-dashboard-artifacts",
+    filename="y_full_original.csv",
+    repo_type="dataset"
+)
+
 # Load full data
-X_full = pd.read_csv("artifacts/X_full_original.csv")
-y_full = pd.read_csv("artifacts/y_full_original.csv").squeeze()
+X_full = pd.read_csv(X_csv_path)
+y_full = pd.read_csv(y_csv_path).squeeze()
 
 # Reset index to ensure alignment (safety)
 X_full = X_full.reset_index(drop=True)
