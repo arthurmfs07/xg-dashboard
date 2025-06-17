@@ -1,3 +1,4 @@
+# Core dependencies
 streamlit
 streamlit-plotly-events
 pandas
@@ -7,8 +8,20 @@ matplotlib
 seaborn
 numpy
 joblib
+
+# Scikit-learn ecosystem
 scikit-learn
 imbalanced-learn
 xgboost
+
+# Embeddings + ML
 gensim
+torch
+skorch
+
+# Model hubs
 huggingface_hub
+
+# Optional (used by light models)
+lightgbm
+catboost
