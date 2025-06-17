@@ -8,7 +8,7 @@ import seaborn as sns
 from io import BytesIO
 import plotly.graph_objects as go
 import numpy as np
-from transformers import PreprocessingTransformer, FeatureEngineeringTransformer #, Word2VecEmbedder,
+#from transformers import PreprocessingTransformer, FeatureEngineeringTransformer #, Word2VecEmbedder,
 import joblib
 from sklearn.metrics import  accuracy_score, roc_auc_score, confusion_matrix, classification_report, roc_curve
 from imblearn.metrics import geometric_mean_score
