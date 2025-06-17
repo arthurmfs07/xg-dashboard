@@ -24,6 +24,7 @@ from sklearn.preprocessing import OneHotEncoder, FunctionTransformer
 from sklearn.pipeline import Pipeline
 from imblearn.pipeline import Pipeline as ImbPipeline
 import gensim
+from huggingface_hub import hf_hub_download
 
 st.set_page_config(layout="wide")
 
@@ -32,6 +33,19 @@ st.set_page_config(layout="wide")
 # should already be preloaded from notebook/serialized
 
 # Define available models
+#available_models = [
+#    "ADASYN", "BSMOTE", "RENN", "ROS",
+#    "RUS", "SMOTE", "SMOTEENN", "SMOTETomek"
+#]
+
+# Sidebar model selector
+#selected_model_name = st.sidebar.selectbox("Select Model", available_models)
+
+# Load corresponding model and preprocessor
+#preprocessor = joblib.load(f"artifacts/preprocessor_{selected_model_name}.joblib")
+#model = joblib.load(f"artifacts/stacked_clf_{selected_model_name}.joblib")
+
+
 available_models = [
     "ADASYN", "BSMOTE", "RENN", "ROS",
     "RUS", "SMOTE", "SMOTEENN", "SMOTETomek"
@@ -40,9 +54,21 @@ available_models = [
 # Sidebar model selector
 selected_model_name = st.sidebar.selectbox("Select Model", available_models)
 
-# Load corresponding model and preprocessor
-preprocessor = joblib.load(f"artifacts/preprocessor_{selected_model_name}.joblib")
-model = joblib.load(f"artifacts/stacked_clf_{selected_model_name}.joblib")
+# Download and load preprocessor
+preprocessor_path = hf_hub_download(
+    repo_id="arthurmfs07/xg-dashboard-artifacts",
+    filename=f"preprocessor_{selected_model_name}.joblib",
+    repo_type="dataset"
+)
+preprocessor = joblib.load(preprocessor_path)
+
+# Download and load model
+model_path = hf_hub_download(
+    repo_id="arthurmfs07/xg-dashboard-artifacts",
+    filename=f"stacked_clf_{selected_model_name}.joblib",
+    repo_type="dataset"
+)
+model = joblib.load(model_path)
 
 # Load full data
 X_full = pd.read_csv("artifacts/X_full_original.csv")

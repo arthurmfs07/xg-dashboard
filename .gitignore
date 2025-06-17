@@ -1,0 +1,3 @@
+artifacts/*.joblib 
+artifacts/*.pkl 
+artifacts/*.pt 
