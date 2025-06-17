@@ -46,29 +46,35 @@ st.set_page_config(layout="wide")
 #model = joblib.load(f"artifacts/stacked_clf_{selected_model_name}.joblib")
 
 
+# Available models
 available_models = [
     "ADASYN", "BSMOTE", "RENN", "ROS",
     "RUS", "SMOTE", "SMOTEENN", "SMOTETomek"
 ]
 
+# Hugging Face repo
+HF_REPO = "arthurmfs07/xg-dashboard-artifacts"
+
 # Sidebar model selector
 selected_model_name = st.sidebar.selectbox("Select Model", available_models)
 
-# Download and load preprocessor
-preprocessor_path = hf_hub_download(
-    repo_id="arthurmfs07/xg-dashboard-artifacts",
-    filename=f"preprocessor_{selected_model_name}.joblib",
-    repo_type="dataset"
-)
-preprocessor = joblib.load(preprocessor_path)
+# Helper: Load file from local cache or Hugging Face
+def load_artifact(filename):
+    local_path = os.path.join("artifacts", filename)
+    if not os.path.exists(local_path):
+        os.makedirs("artifacts", exist_ok=True)
+        st.info(f"Downloading {filename} from Hugging Face Hub...")
+        local_path = hf_hub_download(
+            repo_id=HF_REPO,
+            filename=filename,
+            repo_type="dataset",
+            local_dir="artifacts"
+        )
+    return joblib.load(local_path)
 
-# Download and load model
-model_path = hf_hub_download(
-    repo_id="arthurmfs07/xg-dashboard-artifacts",
-    filename=f"stacked_clf_{selected_model_name}.joblib",
-    repo_type="dataset"
-)
-model = joblib.load(model_path)
+# Load preprocessor and model
+preprocessor = load_artifact(f"preprocessor_{selected_model_name}.joblib")
+model = load_artifact(f"stacked_clf_{selected_model_name}.joblib")
 
 # Load full data
 X_full = pd.read_csv("artifacts/X_full_original.csv")
